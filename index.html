@@ -2,124 +2,111 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Special Playlist for You</title>
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Surprise For You - กานต์เกล้า</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&family=Mali:wght@500;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
+        /* Animation & Keyframes */
+        @keyframes gradientBG { 0% {background-position: 0% 50%;} 50% {background-position: 100% 50%;} 100% {background-position: 0% 50%;} }
+        @keyframes rotateText { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes heartBeat { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.3); } }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        /* แก้ไขส่วนนี้เพื่อให้ Scroll ได้ */
+        body, html { 
+            margin: 0; padding: 0; width: 100%; height: 100%; 
             font-family: 'Kanit', sans-serif;
+            background-color: #0f172a; /* พื้นหลังกันหน้าขาวตอนเปลี่ยน */
+        }
+        
+        /* ล็อคหน้าจอไม่ให้เลื่อนตอนอยู่หน้า Intro */
+        body.no-scroll { overflow: hidden; }
+
+        /* Section 1: Intro */
+        #intro-section {
+            height: 100vh; width: 100%; display: flex; justify-content: center; align-items: center;
+            background-color: #fff0f3; position: fixed; top: 0; left: 0; z-index: 1000;
+            transition: transform 1s cubic-bezier(0.77, 0, 0.175, 1);
+        }
+        #startBtn {
+            padding: 15px 40px; font-size: 26px; cursor: pointer; font-family: 'Mali', cursive;
+            background-color: #ff4d6d; color: white; border: none; border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(255, 77, 109, 0.4); z-index: 1100; transition: 0.3s;
+        }
+        #name-text {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-size: clamp(35px, 8vw, 55px); color: #c9184a; font-weight: bold;
+            font-family: 'Mali', cursive; opacity: 0; z-index: 1050; pointer-events: none;
+            text-shadow: 0 0 15px rgba(255, 182, 193, 0.8); transition: opacity 1s;
+        }
+        #heartCanvas { position: absolute; top: 0; left: 0; z-index: 1010; pointer-events: none; }
+        #nextBtn {
+            position: absolute; bottom: 8%; padding: 12px 35px; font-size: 18px;
+            background-color: #ff4d6d; color: white; border: none; border-radius: 30px;
+            cursor: pointer; display: none; z-index: 1200; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
-        body {
-            background-color: #0f172a;
-            display: flex;
-            justify-content: center;
-            padding: 40px 20px;
-            color: white;
+        /* Section 2: Playlist - แก้ให้เลื่อนได้ปกติ */
+        #playlist-section {
+            min-height: 100vh; width: 100%; display: none;
+            background: linear-gradient(-45deg, #0f172a, #1e293b, #0f172a, #334155);
+            background-size: 400% 400%; animation: gradientBG 15s ease infinite;
+            padding: 40px 20px; 
         }
-
-        .container {
-            width: 100%;
-            max-width: 600px;
-        }
-
+        .container { width: 100%; max-width: 600px; margin: 0 auto; animation: fadeInUp 1s forwards; }
         .header-title {
-            text-align: center;
-            margin-bottom: 30px;
-            font-size: 1.8rem;
-            background: linear-gradient(to right, #60a5fa, #a78bfa);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            text-align: center; margin-bottom: 40px; font-size: 2.2rem;
+            background: linear-gradient(to right, #60a5fa, #f472b6);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
-
-  
         .music-item {
-            background: #1e293b;
-            border-radius: 16px;
-            display: flex; 
-            padding: 15px;
-            margin-bottom: 20px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            align-items: center;
-            transition: 0.3s;
+            background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px;
+            display: flex; padding: 20px; margin-bottom: 25px; align-items: center;
+            transition: 0.4s;
         }
-
-        .music-item:hover {
-            transform: scale(1.01);
-            background: #263349;
-        }
-
-  
-        .music-img {
-            width: 110px;
-            height: 110px;
-            object-fit: cover;
-            border-radius: 12px;
-            flex-shrink: 0;
-        }
-
- 
-        .music-details {
-            margin-left: 20px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            flex-grow: 1;
-            min-height: 110px; 
-        }
-
-        .song-name {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 4px;
-            color: #f1f5f9;
-        }
-
-        .artist-name {
-            font-size: 0.85rem;
-            color: #94a3b8;
-            margin-bottom: 10px;
-            line-height: 1.4;
-        }
-
-      
+        .music-item:hover { transform: translateY(-5px); border: 1px solid rgba(96, 165, 250, 0.5); }
+        .music-img { width: 100px; height: 100px; object-fit: cover; border-radius: 15px; transition: 0.3s; }
+        .music-details { margin-left: 20px; flex-grow: 1; color: white; }
+        .song-name { font-weight: 600; font-size: 1.1rem; }
+        .song-name::after { content: '❤️'; animation: heartBeat 1.5s infinite; display: inline-block; margin-left: 8px; }
+        .artist-name { font-size: 0.9rem; color: #cbd5e1; margin-top: 5px; font-weight: 300; }
         .play-btn {
-            background: #3b82f6;
-            color: white;
-            text-align: center;
-            text-decoration: none;
-            padding: 8px 0;
-            border-radius: 8px;
-            font-weight: 500;
-            transition: 0.3s;
-            display: block;
-            width: 100%;
+            background: linear-gradient(135deg, #3b82f6, #2563eb); color: white;
+            text-align: center; text-decoration: none; padding: 10px 0;
+            border-radius: 12px; display: block; margin-top: 15px; font-size: 0.9rem;
         }
 
-        .play-btn:hover {
-            background: #2563eb;
-            box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+        /* Contact Button */
+        .contact-wrapper { position: fixed; bottom: 30px; right: 30px; z-index: 2000; width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; }
+        .circle-text { position: absolute; width: 100%; height: 100%; animation: rotateText 10s linear infinite; pointer-events: none; }
+        .circle-text text { fill: #94a3b8; font-size: 10px; letter-spacing: 2px; }
+        .contact-trigger {
+            width: 55px; height: 55px; background: linear-gradient(135deg, #60a5fa, #a78bfa);
+            border: none; border-radius: 50%; color: white; font-size: 22px; cursor: pointer; z-index: 2;
         }
-
-     
-        @media (max-width: 480px) {
-            .music-img {
-                width: 90px;
-                height: 90px;
-            }
-            .music-details {
-                min-height: 90px;
-                margin-left: 15px;
-            }
-            .song-name { font-size: 1rem; }
-            .artist-name { font-size: 0.75rem; }
+        .pop-card {
+            position: absolute; bottom: 110px; right: 0; background: rgba(30, 41, 59, 0.95);
+            padding: 20px; border-radius: 25px; width: 220px; opacity: 0;
+            pointer-events: none; transform: translateY(20px); transition: 0.3s; text-align: center;
         }
+        .contact-wrapper.active .pop-card { opacity: 1; pointer-events: auto; transform: translateY(0); }
+        .social-links { display: flex; justify-content: center; gap: 12px; margin-top: 15px; }
+        .social-item { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; color: white; font-weight: bold; font-size: 0.7rem; }
+        .fb { background: #1877f2; } .ig { background: #e1306c; } .tt { background: #000; border: 1px solid #fff; }
     </style>
 </head>
-<body>
+<body class="no-scroll">
+
+    <div id="intro-section">
+        <button id="startBtn">อยากดูหรอ?</button>
+        <canvas id="heartCanvas"></canvas>
+        <div id="name-text">กานต์เกล้า</div>
+        <button id="nextBtn">ไปดูเพลย์ลิสต์กัน ➔</button>
+    </div>
 
 <div class="container">
     <h1 class="header-title">Playlist สำหรับเธอ ❤️</h1>
@@ -151,7 +138,7 @@
         <div class="music-details">
             <div class="info-top">
                 <div class="song-name">Proud</div>
-                <div class="artist-name">เป็นเพลงที่เอาไว้ขอบคุณแฟนที่เชื่อใจและไว้ใจเค้า ถึงแม้จะเป็นการคบระยะไกล ไกลมากๆ แต่ขอบคุณที่เชื่อใจเค้าขอบคุณนะ</div>
+                <div class="artist-name">เป็นเพลงที่เอาไว้ขอบคุณแฟนที่เชื่อใจและไว้ใจเค้า</div>
             </div>
             <a href="https://www.youtube.com/watch?v=9uZF7BlUQPE" target="_blank" class="play-btn">กดเพื่อฟังเพลง</a>
         </div>
@@ -175,7 +162,7 @@
                 <div class="song-name">ธรรมดาแสนพิเศษ</div>
                 <div class="artist-name">เพลงนี้อยากมอบให้เป็นเพลงที่แสดงถึงความรู้สึกเค้าที่มีต่อแฟนว่าถึงวันไหนคิดว่าตัวเองไม่สวยไม่น่ารัก แต่สำหรับเค้าเธอคือดอกไม้สีขาวทามกลางดอกไม้สีดำร้อยๆไร่เลยย</div>
             </div>
-            <a href="https://www.youtube.com/watch?v=h2VIUdst5y4&list=RDh2VIUdst5y4&start_radio=1" target="_blank" class="play-btn">กดเพื่อฟังเพลง</a>
+            <a href="https://www.youtube.com/watch?v=h2VIUdst5y4&list=RD4xvSFYbVa0U&index=25" target="_blank" class="play-btn">กดเพื่อฟังเพลง</a>
         </div>
     </div>
 
@@ -186,7 +173,7 @@
                 <div class="song-name">ฟ้าคงเหงาเมื่อไร้เธอ</div>
                 <div class="artist-name">เป็นเพลงที่กอล์ฟอยากให้แฟนรู้ว่าชีวิตมันมีสีสันมากมายเมื่อมีเขามาเป็นแฟนเป็นสิ่งที่สวยงามที่สุดในโลกถ้าขาดไปเค้าคงหงอยแน่เลย</div>
             </div>
-            <a href="https://www.youtube.com/watch?v=SnNbi3i-SPU&list=RDSnNbi3i-SPU&start_radio=1" target="_blank" class="play-btn">กดเพื่อฟังเพลง</a>
+            <a href="https://www.youtube.com/watch?v=h2VIUdst5y4&list=RD4xvSFYbVa0U&index=25" target="_blank" class="play-btn">กดเพื่อฟังเพลง</a>
         </div>
     </div>
 
@@ -230,7 +217,7 @@
                 <div class="song-name">Love Story</div>
                 <div class="artist-name">เป็นเพลงที่ตอนแรกผมฟังแล้วเฉยๆมากแต่พอเมื่อฟังแล้วอ่านเนื้อเพลงเป็นเพลงที่ผมอยากเปิดในงานแต่งเลยถ้าผมมีโอกาสได้แต่งงานผมจะให้เพลงนี้เป็นเพลงแรกเลย เพราะว่าแฟนผมเป็นคนดิ่งผมจากสิ่งร้ายๆต่างๆที่เจอมาในอดีต รักนะ</div>
             </div>
-            <a href="https://www.youtube.com/watch?v=KrsqPE9SMxo&list=RDKrsqPE9SMxo&start_radio=1" target="_blank" class="play-btn">กดเพื่อฟังเพลง</a>
+            <a href="g" target="_blank" class="play-btn">กดเพื่อฟังเพลง</a>
         </div>
     </div>
 
@@ -289,7 +276,146 @@
         </div>
     </div>
 
+    <div class="music-item">
+        <img src="G" alt="Cover" class="music-img">
+        <div class="music-details">
+            <div class="info-top">
+                <div class="song-name">G</div>
+                <div class="artist-name">G</div>
+            </div>
+            <a href="g" target="_blank" class="play-btn">กดเพื่อฟังเพลง</a>
+        </div>
+    </div>
+
+    <div class="music-item">
+        <img src="G" alt="Cover" class="music-img">
+        <div class="music-details">
+            <div class="info-top">
+                <div class="song-name">G</div>
+                <div class="artist-name">G</div>
+            </div>
+            <a href="g" target="_blank" class="play-btn">กดเพื่อฟังเพลง</a>
+        </div>
+    </div>
+    
+    <div class="music-item">
+        <img src="G" alt="Cover" class="music-img">
+        <div class="music-details">
+            <div class="info-top">
+                <div class="song-name">G</div>
+                <div class="artist-name">G</div>
+            </div>
+            <a href="g" target="_blank" class="play-btn">กดเพื่อฟังเพลง</a>
+        </div>
+    </div>
+
 </div>
 
+<div class="contact-wrapper" id="contactArea">
+        <svg class="circle-text" viewBox="0 0 100 100">
+            <path id="circlePath" d="M 50, 50 m -37, 0 a 37,37 0 1,1 74,0 a 37,37 0 1,1 -74,0" fill="transparent" />
+            <text><textPath href="#circlePath">CONTACT ME • CONTACT ME • CONTACT ME • </textPath></text>
+        </svg>
+        <div class="pop-card">
+            <h4 style="color: white; margin: 0;">Contact Me</h4>
+            <div class="social-links">
+                <a href="#" class="social-item fb">FB</a>
+                <a href="#" class="social-item ig">IG</a>
+                <a href="#" class="social-item tt">TT</a>
+            </div>
+        </div>
+        <button class="contact-trigger" id="mainBtn">💬</button>
+    </div>
+
+    <script>
+        const hCanvas = document.getElementById('heartCanvas');
+        const hCtx = hCanvas.getContext('2d');
+        const startBtn = document.getElementById('startBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const nameText = document.getElementById('name-text');
+        const introSection = document.getElementById('intro-section');
+        const playlistSection = document.getElementById('playlist-section');
+
+        hCanvas.width = window.innerWidth;
+        hCanvas.height = window.innerHeight;
+
+        startBtn.onclick = () => {
+            startBtn.style.display = 'none';
+            let t = 0;
+            const scale = Math.min(window.innerWidth / 40, 13);
+            hCtx.strokeStyle = "#ff4d6d";
+            hCtx.lineWidth = 5;
+            function draw() {
+                if (t > Math.PI * 2) {
+                    nameText.style.opacity = 1;
+                    initPhysics();
+                    setTimeout(() => nextBtn.style.display = 'block', 2000);
+                    return;
+                }
+                const x = 16 * Math.pow(Math.sin(t), 3);
+                const y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
+                const posX = (hCanvas.width/2) + x * scale;
+                const posY = (hCanvas.height/2) + y * scale;
+                if (t === 0) hCtx.moveTo(posX, posY);
+                else { hCtx.lineTo(posX, posY); hCtx.stroke(); }
+                t += 0.04;
+                requestAnimationFrame(draw);
+            }
+            draw();
+        };
+
+        function initPhysics() {
+            const { Engine, Render, Runner, Bodies, Composite, MouseConstraint, Mouse } = Matter;
+            const engine = Engine.create();
+            const render = Render.create({
+                element: introSection, engine: engine,
+                options: { width: window.innerWidth, height: window.innerHeight, wireframes: false, background: 'transparent' }
+            });
+            const walls = [
+                Bodies.rectangle(window.innerWidth/2, window.innerHeight+25, window.innerWidth, 50, { isStatic: true }),
+                Bodies.rectangle(-25, window.innerHeight/2, 50, window.innerHeight, { isStatic: true }),
+                Bodies.rectangle(window.innerWidth+25, window.innerHeight/2, 50, window.innerHeight, { isStatic: true })
+            ];
+            Composite.add(engine.world, walls);
+            for (let i = 0; i < 15; i++) {
+                const word = Bodies.circle(Math.random()*window.innerWidth, -100, 35, {
+                    restitution: 0.7, render: { sprite: { texture: createTexture() } }
+                });
+                Composite.add(engine.world, word);
+            }
+            const mouse = Mouse.create(render.canvas);
+            Composite.add(engine.world, MouseConstraint.create(engine, { mouse: mouse, constraint: { stiffness: 0.2, render: { visible: false } } }));
+            Render.run(render);
+            Runner.run(Runner.create(), engine);
+        }
+
+        function createTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 100; canvas.height = 100;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = 'rgba(255, 182, 193, 0.4)'; ctx.beginPath(); ctx.arc(50, 50, 40, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#ff4d6d'; ctx.font = 'bold 35px Mali'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText('รัก', 50, 50);
+            return canvas.toDataURL();
+        }
+
+        nextBtn.onclick = () => {
+            // เลื่อนหน้า Intro ขึ้น
+            introSection.style.transform = 'translateY(-100%)';
+            // ปลดล็อคให้ Scroll ได้
+            document.body.classList.remove('no-scroll');
+            
+            setTimeout(() => { 
+                introSection.style.display = 'none'; 
+                playlistSection.style.display = 'block'; 
+                // บังคับให้ Scroll ไปบนสุดของหน้าใหม่
+                window.scrollTo(0, 0);
+            }, 1000);
+        };
+
+        const contactArea = document.getElementById('contactArea');
+        document.getElementById('mainBtn').onclick = (e) => { e.stopPropagation(); contactArea.classList.toggle('active'); };
+        document.onclick = () => contactArea.classList.remove('active');
+    </script>
 </body>
 </html>
