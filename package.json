@@ -1,0 +1,23 @@
+{
+  "name": "music-for-kk",
+  "version": "1.0.0",
+  "description": "A special music playlist website",
+  "main": "index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/WJGolf/MusicForKK.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/WJGolf/MusicForKK/issues"
+  },
+  "homepage": "https://github.com/WJGolf/MusicForKK#readme",
+  "dependencies": {
+    "@vercel/analytics": "^2.0.1"
+  }
+}
