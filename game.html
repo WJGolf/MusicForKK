@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Game Center - Surprise For You</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&family=Mali:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- Base Theme (คุมโทนจากหน้าหลัก) --- */
+        @keyframes gradientBG { 0% {background-position: 0% 50%;} 50% {background-position: 100% 50%;} 100% {background-position: 0% 50%;} }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body { 
+            margin: 0; padding: 0; width: 100%; min-height: 100vh;
+            font-family: 'Kanit', sans-serif;
+            background: linear-gradient(-45deg, #0f172a, #1e293b, #0f172a, #334155);
+            background-size: 400% 400%; animation: gradientBG 15s ease infinite;
+            color: white; overflow-x: hidden;
+        }
+
+        .container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 40px 20px 120px 20px; }
+        
+        .header-section { text-align: center; margin-bottom: 40px; }
+        .header-title {
+            font-size: 2.5rem; margin: 0;
+            background: linear-gradient(to right, #60a5fa, #f472b6);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            font-family: 'Mali', cursive;
+        }
+        .header-subtitle { color: #94a3b8; font-size: 1rem; margin-top: 10px; }
+
+        /* --- Game Grid (4 แถว) --- */
+        .game-grid { 
+            display: grid; 
+            grid-template-columns: repeat(4, 1fr); /* 4 แถว */
+            gap: 25px; 
+        }
+
+        /* ปรับแต่งสำหรับมือถือและแท็บเล็ต */
+        @media (max-width: 1024px) { .game-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 600px) { .game-grid { grid-template-columns: 1fr; } }
+
+        /* --- Game Card --- */
+        .game-card {
+            background: rgba(30, 41, 59, 0.6); backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px;
+            overflow: hidden; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: fadeInUp 0.6s ease forwards;
+            display: flex; flex-direction: column;
+        }
+        .game-card:hover { 
+            transform: translateY(-10px); 
+            border-color: rgba(96, 165, 250, 0.5);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .game-banner { 
+            width: 100%; height: 180px; object-fit: cover; 
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .game-info { padding: 20px; flex-grow: 1; display: flex; flex-direction: column; }
+        .game-name { font-size: 1.2rem; font-weight: 600; margin-bottom: 8px; color: #fff; }
+        .game-desc { font-size: 0.85rem; color: #94a3b8; line-height: 1.5; margin-bottom: 20px; flex-grow: 1; }
+
+        .play-btn {
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            background: linear-gradient(135deg, #60a5fa, #3b82f6);
+            color: white; text-decoration: none; padding: 12px;
+            border-radius: 15px; font-weight: 600; transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+            border: none; cursor: pointer; width: 100%;
+        }
+        .play-btn:hover { filter: brightness(1.1); transform: scale(1.02); }
+
+        /* --- Bottom Navigation --- */
+        .bottom-nav {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            width: 90%; max-width: 400px; height: 65px;
+            background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 35px;
+            display: flex; justify-content: space-around; align-items: center;
+            z-index: 2000; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+        .nav-item { color: #94a3b8; text-decoration: none; display: flex; flex-direction: column; align-items: center; font-size: 11px; cursor: pointer; }
+        .nav-item.active { color: #60a5fa; }
+        .nav-icon { font-size: 20px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header-section">
+            <h1 class="header-title">Game Center 🎮</h1>
+            <p class="header-subtitle">รวบรวมเกมสนุกๆ ไว้ให้เธอเล่นคลายเครียดนะ</p>
+        </div>
+
+        <!-- จุดที่ข้อมูลเกมจะถูกแสดง -->
+        <div class="game-grid" id="gameGrid"></div>
+    </div>
+
+    <!-- Navigation Bar -->
+    <nav class="bottom-nav">
+        <div class="nav-item" onclick="location.href='music.html'">
+            <span class="nav-icon">🎵</span>
+            <span>เพลง</span>
+        </div>
+        <div class="nav-item active">
+            <span class="nav-icon">🎮</span>
+            <span>เกม</span>
+        </div>
+        <div class="nav-item" onclick="location.href=''">
+            <span class="nav-icon">✨</span>
+            <span>อนาคต</span>
+        </div>
+    </nav>
+
+    <script>
+        // --- 1. ข้อมูลเกม (กำหนดรูป ชื่อ คำอธิบาย และหน้าที่จะไป) ---
+        const games = [
+            {
+                name: "Block Blaster",
+                desc: "เกมที่จะให้ต่อบล็อกและเก็บคะแนนไปเรื่อยๆ",
+                image: "https://imgs.crazygames.com/block-puzzle-master_1x1/20250924025352/block-puzzle-master_1x1-cover?format=auto&quality=100&metadata=none&width=1200",
+                link: "game/BlockBlaster.html" // หน้าสคริปต์แยกของเกมนี้
+            },
+            {
+                name: "",
+                desc: "",
+                image: "",
+                link: ""
+            },
+            {
+                name:"",
+                desc: "",
+                image: "",
+                link: ""
+            },
+            {
+                name: "",
+                desc: "",
+                image: "",
+                link: ""
+            },
+            // คุณสามารถเพิ่มเกมที่ 5, 6, 7 ลงไปเรื่อยๆ ได้เลย มันจะต่อลงไปข้างล่างเอง
+            {
+                name: "เกมที่ 5",
+                desc: "คำอธิบายเกมใหม่ของคุณ",
+                image: "https://via.placeholder.com/500x300",
+                link: "game_5.html"
+            }
+        ];
+
+        // --- 2. ฟังก์ชันแสดงผลการ์ดเกม ---
+        function renderGames() {
+            const grid = document.getElementById('gameGrid');
+            grid.innerHTML = games.map((game, index) => `
+                <div class="game-card" style="animation-delay: ${index * 0.1}s">
+                    <img src="${game.image}" alt="${game.name}" class="game-banner">
+                    <div class="game-info">
+                        <div class="game-name">${game.name}</div>
+                        <div class="game-desc">${game.desc}</div>
+                        <button class="play-btn" onclick="location.href='${game.link}'">
+                            <span>🎮</span> เล่นเลย
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // เริ่มการทำงาน
+        renderGames();
+    </script>
+</body>
+</html>
