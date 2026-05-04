@@ -3,117 +3,144 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Face Gender Detection AI</title>
-    <!-- โหลด face-api.js ผ่าน CDN -->
-    <script defer src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"></script>
+    <title>Hand Gesture Gender Logic</title>
+    <!-- โหลด TensorFlow.js และ Handpose Model -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/handpose"></script>
     <style>
         body {
             margin: 0;
-            padding: 0;
-            width: 100vw;
-            height: 100vh;
+            background: #121212;
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            background-color: #1a1a1a;
-            color: white;
-            font-family: sans-serif;
+            height: 100vh;
             overflow: hidden;
         }
-        canvas {
-            position: absolute;
-        }
-        .video-container {
+        .container {
             position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border: 4px solid #444;
-            border-radius: 15px;
+            border: 5px solid #333;
+            border-radius: 20px;
             overflow: hidden;
-            background: #000;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
         }
-        #status {
-            margin-bottom: 10px;
-            font-size: 1.2rem;
+        #video {
+            transform: scaleX(-1); /* กลับด้านกล้องเหมือนกระจก */
         }
+        #canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            transform: scaleX(-1);
+        }
+        #result-ui {
+            margin-top: 20px;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 2rem;
+            font-weight: bold;
+            background: #222;
+            transition: all 0.3s ease;
+        }
+        .male-theme { background: #007bff !important; box-shadow: 0 0 20px #007bff; }
+        .female-theme { background: #e91e63 !important; box-shadow: 0 0 20px #e91e63; }
+        .loading { font-size: 1.2rem; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
-    <div id="status">กำลังโหลด AI Model...</div>
-    <div class="video-container">
-        <video id="video" width="720" height="560" autoplay muted></video>
+    <div id="loading-text" class="loading">กำลังโหลด AI Hand Tracking...</div>
+    
+    <div class="container">
+        <video id="video" width="640" height="480" autoplay></video>
+        <canvas id="canvas" width="640" height="480"></canvas>
     </div>
+
+    <div id="result-ui">รอสัญญาณมือ...</div>
 
     <script>
         const video = document.getElementById('video');
-        const statusText = document.getElementById('status');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const resultUI = document.getElementById('result-ui');
+        const loadingText = document.getElementById('loading-text');
 
-        // รายชื่อ Model ที่ต้องใช้ (โหลดจาก GitHub ของผู้พัฒนาโดยตรง)
-        const MODEL_URL = 'https://raw.githubusercontent.com/vladmandic/face-api/master/model/';
+        let model;
+
+        async function setupCamera() {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            video.srcObject = stream;
+            return new Promise((resolve) => {
+                video.onloadedmetadata = () => resolve(video);
+            });
+        }
 
         async function init() {
-            try {
-                // 1. โหลด Models ทั้งหมด
-                await Promise.all([
-                    faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
-                    faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
-                    faceapi.nets.ageGenderNet.loadFromUri(MODEL_URL)
-                ]);
-                
-                statusText.innerText = "Model พร้อมใช้งาน! กำลังเปิดกล้อง...";
-                startVideo();
-            } catch (err) {
-                statusText.innerText = "เกิดข้อผิดพลาดในการโหลด Model";
-                console.error(err);
+            model = await handpose.load();
+            await setupCamera();
+            video.play();
+            loadingText.innerText = "ตรวจจับมือเรียบร้อย (ชู 1 นิ้ว = ชาย | ชู 2 นิ้ว = หญิง)";
+            detect();
+        }
+
+        async function detect() {
+            const predictions = await model.estimateHands(video);
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (predictions.length > 0) {
+                // วาดจุดบนนิ้วมือ
+                predictions.forEach(prediction => {
+                    const landmarks = prediction.landmarks;
+                    for (let i = 0; i < landmarks.length; i++) {
+                        const [x, y] = landmarks[i];
+                        ctx.beginPath();
+                        ctx.arc(x, y, 5, 0, 2 * Math.PI);
+                        ctx.fillStyle = "#00ff00";
+                        ctx.fill();
+                    }
+
+                    // วิเคราะห์จำนวนนิ้วที่ "ชู" (Logic แบบง่าย)
+                    const fingersUp = checkFingers(landmarks);
+                    updateUI(fingersUp);
+                });
+            } else {
+                resultUI.innerText = "มองไม่เห็นมือ";
+                resultUI.className = "";
+            }
+
+            requestAnimationFrame(detect);
+        }
+
+        function checkFingers(landmarks) {
+            // นับนิ้วที่อยู่สูงกว่าข้อต่อโคนนิ้ว (Y น้อยกว่าคือสูงกว่า)
+            let count = 0;
+            const fingerTips = [8, 12, 16, 20]; // นิ้วชี้, กลาง, นาง, ก้อย
+            const fingerBases = [6, 10, 14, 18];
+
+            fingerTips.forEach((tip, idx) => {
+                if (landmarks[tip][1] < landmarks[fingerBases[idx]][1]) {
+                    count++;
+                }
+            });
+            return count;
+        }
+
+        function updateUI(count) {
+            if (count === 1) {
+                resultUI.innerText = "เพศ: ชาย ♂";
+                resultUI.className = "male-theme";
+            } else if (count >= 2) {
+                resultUI.innerText = "เพศ: หญิง ♀";
+                resultUI.className = "female-theme";
+            } else {
+                resultUI.innerText = "ชูนนิ้วเพื่อเลือกเพศ";
+                resultUI.className = "";
             }
         }
-
-        function startVideo() {
-            navigator.mediaDevices.getUserMedia({ video: {} })
-                .then(stream => {
-                    video.srcObject = stream;
-                    statusText.innerText = "ระบบกำลังวิเคราะห์...";
-                })
-                .catch(err => {
-                    statusText.innerText = "ไม่สามารถเข้าถึงกล้องได้";
-                    console.error(err);
-                });
-        }
-
-        video.addEventListener('play', () => {
-            const canvas = faceapi.createCanvasFromMedia(video);
-            document.querySelector('.video-container').append(canvas);
-            
-            const displaySize = { width: video.width, height: video.height };
-            faceapi.matchDimensions(canvas, displaySize);
-
-            setInterval(async () => {
-                // 2. ตรวจจับและวิเคราะห์
-                const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
-                    .withFaceLandmarks()
-                    .withAgeAndGender();
-
-                const resizedDetections = faceapi.resizeResults(detections, displaySize);
-                
-                // ล้าง Canvas เก่า
-                canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
-
-                // 3. วาดผลลัพธ์ลงบนหน้าจอ
-                resizedDetections.forEach(result => {
-                    const { gender, genderProbability, age } = result;
-                    const genderTH = gender === 'male' ? 'ชาย' : 'หญิง';
-                    const score = Math.round(genderProbability * 100);
-                    
-                    // วาดกล่องครอบหน้า
-                    new faceapi.draw.DrawBox(result.detection.box, { 
-                        label: `${genderTH} (${score}%)` 
-                    }).draw(canvas);
-                });
-            }, 150); // วิเคราะห์ทุกๆ 0.15 วินาที
-        });
 
         init();
     </script>
