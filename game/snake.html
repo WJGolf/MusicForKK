@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Neon Snake - Best Score Edition</title>
+    <style>
+        :root {
+            --neon-green: #39ff14;
+            --neon-pink: #ff007f;
+            --neon-blue: #00f3ff;
+            --bg-color: #0a0a12;
+        }
+        body {
+            background-color: var(--bg-color);
+            color: white;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+            touch-action: none;
+        }
+        .stats-container {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 15px;
+            font-size: 20px;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(255,255,255,0.3);
+        }
+        .main-layout {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+        #game-board {
+            position: relative;
+            border: 4px solid var(--neon-blue);
+            box-shadow: 0 0 30px var(--neon-blue);
+            background: #000;
+            border-radius: 10px;
+        }
+        canvas { display: block; border-radius: 6px; }
+
+        /* แถบปรับความเร็ว */
+        .side-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 20px;
+            border: 1px solid var(--neon-blue);
+            box-shadow: inset 0 0 15px rgba(0, 243, 255, 0.1);
+        }
+        .speed-slider {
+            appearance: slider-vertical;
+            width: 12px;
+            height: 200px;
+            cursor: pointer;
+            outline: none;
+        }
+        .speed-label { margin-top: 15px; font-size: 14px; color: var(--neon-blue); font-weight: bold; }
+
+        /* หน้าจอซ้อน */
+        .overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            text-align: center;
+            border-radius: 6px;
+        }
+        .restart-btn {
+            background: transparent;
+            border: 2px solid var(--neon-green);
+            color: var(--neon-green);
+            padding: 12px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: 0.3s;
+        }
+        .restart-btn:hover { background: var(--neon-green); color: black; box-shadow: 0 0 20px var(--neon-green); }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 25px;
+        }
+        .btn {
+            background: rgba(0, 243, 255, 0.05);
+            border: 2px solid var(--neon-blue);
+            color: var(--neon-blue);
+            padding: 20px;
+            border-radius: 15px;
+            font-size: 24px;
+            box-shadow: 0 4px 0 var(--neon-blue);
+        }
+        .btn:active { transform: translateY(4px); box-shadow: none; }
+
+        @media (max-width: 650px) {
+            .main-layout { flex-direction: column; }
+            .speed-slider { height: 80px; appearance: auto; width: 150px; }
+            .side-panel { flex-direction: row; gap: 15px; padding: 10px 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="stats-container">
+    <div>SCORE: <span id="score" style="color: var(--neon-green)">0</span></div>
+    <div>BEST: <span id="highScore" style="color: var(--neon-pink)">0</span></div>
+</div>
+
+<div class="main-layout">
+    <div id="game-board">
+        <!-- หน้าจอรอเริ่ม -->
+        <div id="start-overlay" class="overlay">
+            <h1 style="color: var(--neon-green); font-size: 40px; margin-bottom: 10px;">READY?</h1>
+            <p style="color: var(--neon-blue); font-size: 18px;">กดปุ่มเดินเพื่อเริ่มเก็บคะแนน</p>
+        </div>
+
+        <!-- หน้าจอสรุปผลตอนจบ -->
+        <div id="game-over-overlay" class="overlay" style="display: none;">
+            <h1 style="color: var(--neon-pink); margin-bottom: 5px;">GAME OVER</h1>
+            <p id="final-score-text" style="font-size: 24px; margin: 10px 0; color: white;"></p>
+            <p id="best-alert" style="color: var(--neon-blue); font-weight: bold; margin-bottom: 10px; height: 24px;"></p>
+            <button class="restart-btn" onclick="resetGame()">เล่นอีกครั้ง</button>
+        </div>
+
+        <canvas id="snakeCanvas"></canvas>
+    </div>
+
+    <div class="side-panel">
+        <span style="font-size: 12px; font-weight: bold;">SPEED</span>
+        <input type="range" id="speedRange" class="speed-slider" min="1" max="10" value="5" step="1">
+        <div class="speed-label" id="speedValue">Level 5</div>
+    </div>
+</div>
+
+<div class="controls">
+    <button class="btn" style="visibility:hidden"></button>
+    <button class="btn" id="btnUp">↑</button>
+    <button class="btn" style="visibility:hidden"></button>
+    <button class="btn" id="btnLeft">←</button>
+    <button class="btn" id="btnDown">↓</button>
+    <button class="btn" id="btnRight">→</button>
+</div>
+
+<script>
+    const canvas = document.getElementById('snakeCanvas');
+    const ctx = canvas.getContext('2d');
+    const speedSlider = document.getElementById('speedRange');
+    const speedDisplay = document.getElementById('speedValue');
+    const scoreEl = document.getElementById('score');
+    const highScoreEl = document.getElementById('highScore');
+
+    const gridSize = 20;
+    const tileCount = 20;
+    canvas.width = gridSize * tileCount;
+    canvas.height = gridSize * tileCount;
+
+    let score = 0;
+    let highScore = localStorage.getItem('snakeBest') || 0;
+    highScoreEl.innerText = highScore;
+
+    let snake = [{x: 10, y: 10}];
+    let food = {x: 5, y: 5};
+    let dx = 0; let dy = 0;
+    let gameStarted = false;
+    let timer;
+
+    function getSpeedDelay() {
+        return 220 - (parseInt(speedSlider.value) * 18); 
+    }
+
+    speedSlider.oninput = function() {
+        speedDisplay.innerText = `Level ${this.value}`;
+    };
+
+    function draw() {
+        ctx.fillStyle = "black";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // อาหาร
+        ctx.fillStyle = "#ff007f";
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = "#ff007f";
+        ctx.beginPath();
+        ctx.arc(food.x * gridSize + gridSize/2, food.y * gridSize + gridSize/2, gridSize/2 - 2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // งู
+        snake.forEach((part, index) => {
+            ctx.fillStyle = index === 0 ? "#39ff14" : "#2ecc71";
+            ctx.shadowBlur = index === 0 ? 15 : 5;
+            ctx.shadowColor = "#39ff14";
+            ctx.fillRect(part.x * gridSize + 1, part.y * gridSize + 1, gridSize - 2, gridSize - 2);
+        });
+        ctx.shadowBlur = 0;
+    }
+
+    function update() {
+        if (!gameStarted) return;
+
+        const head = {x: snake[0].x + dx, y: snake[0].y + dy};
+
+        // ตรวจสอบการชน
+        if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount || 
+            snake.some((part, i) => i !== 0 && part.x === head.x && part.y === head.y)) {
+            endGame();
+            return;
+        }
+
+        snake.unshift(head);
+
+        if (head.x === food.x && head.y === food.y) {
+            score += 10;
+            scoreEl.innerText = score;
+            createFood();
+        } else {
+            snake.pop();
+        }
+
+        draw();
+        timer = setTimeout(update, getSpeedDelay());
+    }
+
+    function createFood() {
+        food.x = Math.floor(Math.random() * tileCount);
+        food.y = Math.floor(Math.random() * tileCount);
+        if (snake.some(p => p.x === food.x && p.y === food.y)) createFood();
+    }
+
+    function changeDirection(nx, ny) {
+        if (!gameStarted) {
+            gameStarted = true;
+            document.getElementById('start-overlay').style.display = 'none';
+            update();
+        }
+        if (nx === -dx && dx !== 0) return;
+        if (ny === -dy && dy !== 0) return;
+        dx = nx; dy = ny;
+    }
+
+    function endGame() {
+        gameStarted = false;
+        clearTimeout(timer);
+        
+        let isNewBest = false;
+        if (score > highScore) {
+            highScore = score;
+            localStorage.setItem('snakeBest', highScore);
+            highScoreEl.innerText = highScore;
+            isNewBest = true;
+        }
+
+        document.getElementById('final-score-text').innerText = `คุณทำได้ ${score} คะแนน`;
+        document.getElementById('best-alert').innerText = isNewBest ? "🎊 สถิติใหม่! 🎊" : "";
+        document.getElementById('game-over-overlay').style.display = 'flex';
+    }
+
+    function resetGame() {
+        score = 0;
+        scoreEl.innerText = 0;
+        snake = [{x: 10, y: 10}];
+        dx = 0; dy = 0;
+        document.getElementById('game-over-overlay').style.display = 'none';
+        document.getElementById('start-overlay').style.display = 'flex';
+        draw();
+    }
+
+    // Input Listeners
+    window.addEventListener('keydown', e => {
+        if (e.key === 'ArrowUp') changeDirection(0, -1);
+        if (e.key === 'ArrowDown') changeDirection(0, 1);
+        if (e.key === 'ArrowLeft') changeDirection(-1, 0);
+        if (e.key === 'ArrowRight') changeDirection(1, 0);
+    });
+
+    document.getElementById('btnUp').onclick = () => changeDirection(0, -1);
+    document.getElementById('btnDown').onclick = () => changeDirection(0, 1);
+    document.getElementById('btnLeft').onclick = () => changeDirection(-1, 0);
+    document.getElementById('btnRight').onclick = () => changeDirection(1, 0);
+
+    draw();
+</script>
+</body>
+</html>
