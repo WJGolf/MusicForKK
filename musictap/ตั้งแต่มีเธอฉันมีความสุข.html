@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>Playing Now - I Wanna Be Yours</title>
+    <style>
+        body { background: #121212; color: white; font-family: sans-serif; margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; }
+        .back-btn { position: absolute; top: 20px; left: 20px; color: #888; text-decoration: none; font-size: 1.2rem; }
+        
+        .player-container { display: flex; align-items: center; gap: 50px; background: #181818; padding: 50px; border-radius: 25px; width: 850px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        .cover-art { width: 350px; height: 350px; border-radius: 15px; object-fit: cover; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        
+        .info-side { flex: 1; display: flex; flex-direction: column; gap: 15px; }
+        h1 { margin: 0; font-size: 3rem; color: #1DB954; }
+        
+        /* แถบเลื่อนเวลา */
+        .progress-box { width: 100%; margin-top: 20px; }
+        #seekBar { width: 100%; cursor: pointer; accent-color: #1DB954; }
+        .time-labels { display: flex; justify-content: space-between; font-size: 0.85rem; color: #888; margin-top: 5px; }
+
+        .controls { display: flex; gap: 12px; margin-top: 20px; align-items: center; }
+        button { background: #282828; border: none; color: white; padding: 12px 18px; border-radius: 10px; cursor: pointer; font-weight: bold; }
+        .play-btn { background: #1DB954; color: black; padding: 15px 35px; border-radius: 30px; font-size: 1.2rem; }
+        .next-btn { background: #444; }
+    </style>
+</head>
+<body>
+
+    <a href="../music.html" class="back-btn">← ย้อนกลับ</a>
+
+    <div class="player-container">
+        <img src="photo/ตั้งแต่มีเธอฉันมีความสุข.jpg" class="cover-art" id="mainImg">
+
+        <div class="info-side">
+            <h1 id="title">ตั้งแต่มีเธอฉันมีความสุข</h1>
+            <p style="color:#888;">เป็นเพลงที่ผมอยากมอบให้แฟนผมทั้งชีวิตผมแต่สิ่งแย่ๆเมื่อมาเจอแฟนคนนี้ทำให้ทุกๆวันผมไม่มีเหงาเลย ผมดีใจมากๆเลยวันแรกที่ผมคุยกันเธอคนนี้ปลุกผมตั้งนาฬิกาปลุกเพื่อผมแต่เธอไม่ตื่นนะ 5555 แต่ผมตื่นแทน อิอิ</p>
+            
+            <audio id="audio" src="music/Violette Wautier - ตั้งแต่มีเธอฉันมีความสุข (This Time) _ Official Music Video.mp3"></audio>
+            
+            <div class="progress-box">
+                <input type="range" id="seekBar" value="0">
+                <div class="time-labels">
+                    <span id="cur">0:00</span>
+                    <span id="dur">0:00</span>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button onclick="skip(-10)">↺ 10s</button>
+                <button onclick="skip(-5)">↺ 5s</button>
+                <button class="play-btn" id="playBtn" onclick="togglePlay()">เล่น</button>
+                <button onclick="skip(5)">5s ↻</button>
+                <button onclick="skip(10)">10s ↻</button>
+                
+                <button class="next-btn" onclick="window.location.href='Lost Jigsaw.html'">เพลงถัดไป ⏭</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+    const audio = document.getElementById('audio');
+    const playBtn = document.getElementById('playBtn');
+    const seekBar = document.getElementById('seekBar');
+
+    function togglePlay() {
+        if (audio.paused) { 
+            audio.play(); 
+            playBtn.innerText = "หยุด"; 
+        } else { 
+            audio.pause(); 
+            playBtn.innerText = "เล่น"; 
+        }
+    }
+
+    function skip(sec) { audio.currentTime += sec; }
+
+    audio.ontimeupdate = () => {
+        if (audio.duration) {
+            seekBar.value = (audio.currentTime / audio.duration) * 100;
+            document.getElementById('cur').innerText = formatTime(audio.currentTime);
+            document.getElementById('dur').innerText = formatTime(audio.duration);
+        }
+    };
+
+    seekBar.oninput = () => { audio.currentTime = (seekBar.value / 100) * audio.duration; };
+
+    function formatTime(s) {
+        let m = Math.floor(s/60); 
+        let sec = Math.floor(s%60);
+        return `${m}:${sec < 10 ? '0' + sec : sec}`;
+    }
+
+    // เมื่อเล่นจบ จะเด้งไปหน้า With You.html
+    audio.onended = () => { 
+        window.location.href = 'Lost Jigsaw.html'; 
+    };
+</script>
+</body>
+</html>
