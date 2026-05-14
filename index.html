@@ -2,36 +2,95 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Surprise For You - กานต์เกล้า</title>
     <link href="https://fonts.googleapis.com/css2?family=Mali:wght@500;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
         body, html { 
-            margin: 0; padding: 0; width: 100%; height: 100%; 
-            overflow: hidden; background-color: #fff0f3; 
+            margin: 0; padding: 0; 
+            width: 100%; 
+            height: 100%;
+            height: -webkit-fill-available; /* แก้ปัญหาความสูงบนมือถือ */
+            overflow: hidden; 
+            background-color: #fff0f3; 
             font-family: 'Mali', cursive;
+            position: fixed; /* ป้องกันหน้าจอสั่นบน iOS */
         }
+
         #intro-section {
-            height: 100vh; width: 100%; display: flex; justify-content: center; align-items: center;
+            height: 100%;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
             position: relative;
+            touch-action: none; /* ป้องกันการเลื่อนหน้าจอ */
         }
+
         #startBtn {
-            padding: 15px 40px; font-size: 26px; cursor: pointer;
-            background-color: #ff4d6d; color: white; border: none; border-radius: 50px;
-            box-shadow: 0 4px 15px rgba(255, 77, 109, 0.4); z-index: 3100;
+            padding: 15px 40px;
+            font-size: 24px;
+            cursor: pointer;
+            background-color: #ff4d6d;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(255, 77, 109, 0.4);
+            z-index: 3100;
+            transition: transform 0.2s;
         }
+
+        #startBtn:active { transform: scale(0.95); }
+
         #name-text {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            font-size: clamp(35px, 8vw, 55px); color: #c9184a; font-weight: bold;
-            opacity: 0; z-index: 3050; transition: opacity 1s;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: clamp(30px, 10vw, 55px);
+            color: #c9184a;
+            font-weight: bold;
+            opacity: 0;
+            z-index: 3050;
+            transition: opacity 1s;
+            text-align: center;
+            width: 100%;
+            pointer-events: none;
         }
-        #heartCanvas { position: absolute; top: 0; left: 0; z-index: 3010; pointer-events: none; }
+
+        #heartCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 3010;
+            pointer-events: none;
+        }
+
         #nextBtn {
-            position: absolute; bottom: 10%; padding: 12px 35px; font-size: 18px;
-            background-color: #ff4d6d; color: white; border: none; border-radius: 30px;
-            cursor: pointer; display: none; z-index: 3200; text-decoration: none;
+            position: absolute;
+            bottom: 15%; /* ยกขึ้นมานิดนึงกันติดแถบ Home ของ iPhone */
+            padding: 12px 35px;
+            font-size: 18px;
+            background-color: #ff4d6d;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            display: none;
+            z-index: 3200;
+            text-decoration: none;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        /* สำหรับ Matter.js Canvas */
+        canvas:not(#heartCanvas) {
+            position: absolute;
+            top: 0;
+            left: 0;
         }
     </style>
 </head>
@@ -52,29 +111,44 @@
         const nameText = document.getElementById('name-text');
         const introSection = document.getElementById('intro-section');
 
-        hCanvas.width = window.innerWidth;
-        hCanvas.height = window.innerHeight;
+        function resize() {
+            hCanvas.width = window.innerWidth;
+            hCanvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
 
         startBtn.onclick = () => {
             startBtn.style.display = 'none';
             let t = 0;
-            const scale = Math.min(window.innerWidth / 40, 13);
+            // ปรับ scale ตามความกว้างหน้าจอ (Responsive Heart)
+            const scale = Math.min(window.innerWidth / 35, 13);
+            
             hCtx.strokeStyle = "#ff4d6d";
             hCtx.lineWidth = 5;
+            hCtx.lineCap = "round";
+
             function draw() {
                 if (t > Math.PI * 2) {
                     nameText.style.opacity = 1;
                     initPhysics();
-                    setTimeout(() => nextBtn.style.display = 'block', 1500);
+                    setTimeout(() => {
+                        nextBtn.style.display = 'block';
+                    }, 1000);
                     return;
                 }
                 const x = 16 * Math.pow(Math.sin(t), 3);
                 const y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
-                const posX = (hCanvas.width/2) + x * scale;
-                const posY = (hCanvas.height/2) + y * scale;
+                
+                const posX = (window.innerWidth / 2) + x * scale;
+                const posY = (window.innerHeight / 2) + y * scale;
+
                 if (t === 0) hCtx.moveTo(posX, posY);
-                else { hCtx.lineTo(posX, posY); hCtx.stroke(); }
-                t += 0.04;
+                else {
+                    hCtx.lineTo(posX, posY);
+                    hCtx.stroke();
+                }
+                t += 0.05;
                 requestAnimationFrame(draw);
             }
             draw();
@@ -83,35 +157,78 @@
         function initPhysics() {
             const { Engine, Render, Runner, Bodies, Composite, MouseConstraint, Mouse } = Matter;
             const engine = Engine.create();
+            
             const render = Render.create({
-                element: introSection, engine: engine,
-                options: { width: window.innerWidth, height: window.innerHeight, wireframes: false, background: 'transparent' }
+                element: introSection,
+                engine: engine,
+                options: {
+                    width: window.innerWidth,
+                    height: window.innerHeight,
+                    wireframes: false,
+                    background: 'transparent',
+                    pixelRatio: window.devicePixelRatio // ทำให้ภาพคมชัดบนจอ Retina
+                }
             });
+
             const walls = [
-                Bodies.rectangle(window.innerWidth/2, window.innerHeight+25, window.innerWidth, 50, { isStatic: true }),
+                Bodies.rectangle(window.innerWidth/2, window.innerHeight + 25, window.innerWidth, 50, { isStatic: true }),
                 Bodies.rectangle(-25, window.innerHeight/2, 50, window.innerHeight, { isStatic: true }),
-                Bodies.rectangle(window.innerWidth+25, window.innerHeight/2, 50, window.innerHeight, { isStatic: true })
+                Bodies.rectangle(window.innerWidth + 25, window.innerHeight/2, 50, window.innerHeight, { isStatic: true })
             ];
+            
             Composite.add(engine.world, walls);
+
+            // ปรับขนาดวงกลมตามขนาดหน้าจอ
+            const ballRadius = window.innerWidth < 500 ? 25 : 35;
+
             for (let i = 0; i < 15; i++) {
-                const word = Bodies.circle(Math.random()*window.innerWidth, -100, 35, {
-                    restitution: 0.7, render: { sprite: { texture: createTexture() } }
-                });
+                const word = Bodies.circle(
+                    Math.random() * window.innerWidth, 
+                    -100 - (i * 50), 
+                    ballRadius, 
+                    {
+                        restitution: 0.6,
+                        friction: 0.1,
+                        render: { 
+                            sprite: { 
+                                texture: createTexture(ballRadius) 
+                            } 
+                        }
+                    }
+                );
                 Composite.add(engine.world, word);
             }
+
             const mouse = Mouse.create(render.canvas);
-            Composite.add(engine.world, MouseConstraint.create(engine, { mouse: mouse, constraint: { stiffness: 0.2, render: { visible: false } } }));
+            // เพิ่มการรองรับ Touch สำหรับมือถือ
+            const mouseConstraint = MouseConstraint.create(engine, {
+                mouse: mouse,
+                constraint: { stiffness: 0.2, render: { visible: false } }
+            });
+
+            Composite.add(engine.world, mouseConstraint);
             Render.run(render);
             Runner.run(Runner.create(), engine);
         }
 
-        function createTexture() {
+        function createTexture(radius) {
             const canvas = document.createElement('canvas');
-            canvas.width = 100; canvas.height = 100;
+            const size = radius * 2.5;
+            canvas.width = size;
+            canvas.height = size;
             const ctx = canvas.getContext('2d');
-            ctx.fillStyle = 'rgba(255, 182, 193, 0.4)'; ctx.beginPath(); ctx.arc(50, 50, 40, 0, Math.PI*2); ctx.fill();
-            ctx.fillStyle = '#ff4d6d'; ctx.font = 'bold 35px Mali'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-            ctx.fillText('รัก', 50, 50);
+            
+            ctx.fillStyle = 'rgba(255, 182, 193, 0.6)';
+            ctx.beginPath();
+            ctx.arc(size/2, size/2, radius, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = '#ff4d6d';
+            ctx.font = `bold ${radius * 0.8}px Mali`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('รัก', size/2, size/2);
+            
             return canvas.toDataURL();
         }
     </script>
