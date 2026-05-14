@@ -2,222 +2,271 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Music For You - กานต์เกล้า</title>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        /* Animation & Theme จากโค้ดอันที่สอง */
         @keyframes gradientBG { 0% {background-position: 0% 50%;} 50% {background-position: 100% 50%;} 100% {background-position: 0% 50%;} }
-        @keyframes rotateText { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-
+        
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { 
             margin: 0; padding: 0; width: 100%; min-height: 100vh;
             font-family: 'Kanit', sans-serif;
             background: linear-gradient(-45deg, #0f172a, #1e293b, #0f172a, #334155);
             background-size: 400% 400%; animation: gradientBG 15s ease infinite;
-            color: white;
+            color: white; overflow-x: hidden;
         }
 
-        .main-content { padding: 40px 20px 120px 20px; }
-        .container { width: 100%; max-width: 600px; margin: 0 auto; }
-        
-        .header-title {
-            text-align: center; margin-bottom: 30px; font-size: 2.2rem;
-            background: linear-gradient(to right, #60a5fa, #f472b6);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        }
+        .container { width: 100%; max-width: 600px; margin: 0 auto; padding: 40px 20px 140px; }
+        .header-title { text-align: center; margin-bottom: 30px; font-size: 2.2rem; background: linear-gradient(to right, #60a5fa, #f472b6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
-        /* Search Bar ปรับให้เข้ากับดีไซน์ใหม่ */
-        .search-container { margin-bottom: 30px; text-align: center; }
-        .search-bar { 
-            width: 100%; max-width: 400px; padding: 12px 20px; 
-            border-radius: 25px; border: 1px solid rgba(255,255,255,0.1); 
-            background: rgba(30, 41, 59, 0.7); color: white; outline: none;
-            backdrop-filter: blur(10px);
-        }
-
-        /* Music Item ดีไซน์ใหม่แบบที่สอง */
+        /* Music Card Base */
         .music-item {
-            background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px;
-            display: flex; padding: 15px; margin-bottom: 20px;
-            animation: fadeInUp 0.5s ease forwards;
-            transition: 0.3s; cursor: pointer;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px; margin-bottom: 15px;
+            overflow: hidden; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer; position: relative;
         }
-        .music-item:hover { transform: scale(1.02); background: rgba(30, 41, 59, 0.9); border-color: #60a5fa; }
 
-        .music-img { width: 90px; height: 90px; object-fit: cover; border-radius: 12px; flex-shrink: 0; }
-        .music-details { margin-left: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; }
-        .song-name { font-weight: 600; font-size: 1.2rem; color: #fff; margin-bottom: 5px; }
-        .artist-name { font-size: 0.85rem; color: #cbd5e1; line-height: 1.4; }
+        .item-main { display: flex; padding: 18px; align-items: center; }
+        .music-img { width: 75px; height: 75px; object-fit: cover; border-radius: 14px; transition: 0.4s; }
+        .music-details { margin-left: 15px; flex-grow: 1; }
+        .song-name { font-weight: 600; font-size: 1.1rem; }
+        .click-hint { font-size: 0.7rem; color: #60a5fa; margin-top: 4px; opacity: 0.8; }
 
-        /* Bottom Nav & Contact จากโค้ดอันที่สอง */
-        .bottom-nav {
-            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-            width: 90%; max-width: 400px; height: 65px;
-            background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(20px);
-            border: 1px solid rgba(255,255,255,0.1); border-radius: 35px;
-            display: flex; justify-content: space-around; align-items: center; z-index: 2000;
+        .item-expanded {
+            max-height: 0; padding: 0 20px; opacity: 0;
+            overflow: hidden; transition: all 0.4s ease;
+            background: rgba(0, 0, 0, 0.2);
         }
-        .nav-item { color: #94a3b8; text-decoration: none; display: flex; flex-direction: column; align-items: center; font-size: 11px; }
+
+        .artist-name { padding: 15px 0; font-size: 0.9rem; color: #cbd5e1; line-height: 1.5; font-weight: 300; }
+        .go-link { display: inline-block; margin-bottom: 15px; padding: 6px 18px; background: #60a5fa; color: white; border-radius: 50px; font-size: 0.8rem; font-weight: 600; }
+
+        /* สภาวะ Active */
+        .music-item.active { background: rgba(255, 255, 255, 0.12); border-color: #60a5fa; transform: scale(1.02); }
+        .music-item.active .item-expanded { max-height: 300px; opacity: 1; padding-bottom: 10px; }
+        .music-item.active .music-img { transform: scale(1.1); }
+        .music-item.active .song-name { color: #60a5fa; }
+        .music-item.active .click-hint { display: none; }
+
+        /* Navigation */
+        .bottom-nav { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; height: 70px; background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(20px); border-radius: 40px; display: flex; justify-content: space-around; align-items: center; z-index: 2000; border: 1px solid rgba(255,255,255,0.1); }
+        .nav-item { color: #94a3b8; text-decoration: none; font-size: 11px; display: flex; flex-direction: column; align-items: center; }
         .nav-item.active { color: #60a5fa; }
-        .nav-icon { font-size: 20px; }
-
-        .contact-wrapper { position: fixed; bottom: 100px; right: 20px; z-index: 2000; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; }
-        .circle-text { position: absolute; width: 100%; height: 100%; animation: rotateText 10s linear infinite; pointer-events: none; }
-        .contact-trigger { width: 45px; height: 45px; background: linear-gradient(135deg, #60a5fa, #a78bfa); border: none; border-radius: 50%; color: white; cursor: pointer; z-index: 2; }
-        .pop-card { position: absolute; bottom: 90px; right: 0; background: rgba(30, 41, 59, 0.95); padding: 15px; border-radius: 20px; width: 180px; opacity: 0; pointer-events: none; transform: translateY(20px); transition: 0.3s; }
-        .contact-wrapper.active .pop-card { opacity: 1; pointer-events: auto; transform: translateY(0); }
-        .social-links { display: flex; justify-content: center; gap: 10px; margin-top: 10px; }
-        .social-item { width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; color: white; font-size: 0.7rem; font-weight: bold; }
-        .fb { background: #1877f2; } .ig { background: #e1306c; } .tt { background: #000; border: 1px solid #fff; }
     </style>
 </head>
 <body>
 
-    <div class="main-content">
-        <div class="container">
-            <h1 class="header-title">Music For You 🎵</h1>
-            
-            <div class="search-container">
-                <input type="text" class="search-bar" id="searchInput" placeholder="ค้นหาเพลงที่อยากฟัง..." oninput="filterSongs()">
-            </div>
-
-            <div id="music-grid">
-                <div class="music-item" onclick="window.location.href='musictap/I Wanna Be Yours.html'">
+    <div class="container">
+        <h1 class="header-title">Music For You 🎵</h1>
+        
+        <div id="music-grid">
+            <!-- 1. I Wanna Be Yours -->
+            <div class="music-item" onclick="handleCardClick(this, 'musictap/I Wanna Be Yours.html')">
+                <div class="item-main">
                     <img src="musictap/photo/I Wanna Be Yours.jpg" class="music-img" onerror="this.src='https://via.placeholder.com/150'">
                     <div class="music-details">
                         <div class="song-name">I Wanna Be Yours</div>
-                        <div class="artist-name">เป็นเพลงที่อยากให้รู้ว่าความรักที่มีให้นั้นคือความรักที่ไม่มีเงื่อนไขอะไรที่มีให้เธอเลย เค้ารักและทุ่มเทกับความรักขนาดไหน ถึงจะดูสุดโต้งแต่อยากให้เพลงนี้เป็นสื่อให้เธอรู้ว่าความรักที่มีให้มันมีเยอะแค่ไหน</div>
+                        <div class="click-hint">แตะเพื่ออ่านความหมาย ✨</div>
                     </div>
                 </div>
+                <div class="item-expanded">
+                    <div class="artist-name">เป็นเพลงที่อยากให้รู้ว่าความรักที่มีให้นั้นคือความรักที่ไม่มีเงื่อนไขอะไรที่มีให้เธอเลย เค้ารักและทุ่มเทกับความรักขนาดไหน ถึงจะดูสุดโต้งแต่อยากให้เพลงนี้เป็นสื่อให้เธอรู้ว่าความรักที่มีให้มันมีเยอะแค่ไหน</div>
+                    <div class="go-link">กดอีกครั้งเพื่อไปที่หน้าเพลง ➔</div>
+                </div>
+            </div>
 
-                <div class="music-item" onclick="window.location.href='musictap/With You.html'">
+            <!-- 2. ข้างกาย -->
+            <div class="music-item" onclick="handleCardClick(this, 'musictap/With You.html')">
+                <div class="item-main">
                     <img src="musictap/photo/With You.jpg" class="music-img" onerror="this.src='https://via.placeholder.com/150'">
                     <div class="music-details">
                         <div class="song-name">ข้างกาย</div>
-                        <div class="artist-name">เป็นเพลงที่กอล์ฟชอบฟังไม่ว่าจะเวลาไหน ก็อยากเปิดให้คนที่รักที่สุดฟังว่าจะอยู่ข้างๆไม่ว่าจะเวลาไหนที่รู้าสึกโดดเดี่ยว หรือเครียดก็จะมีเค้าอยู่ข้างๆตลอดไป</div>
+                        <div class="click-hint">แตะเพื่ออ่านความหมาย ✨</div>
                     </div>
                 </div>
+                <div class="item-expanded">
+                    <div class="artist-name">เป็นเพลงที่กอล์ฟชอบฟังไม่ว่าจะเวลาไหน ก็อยากเปิดให้คนที่รักที่สุดฟังว่าจะอยู่ข้างๆไม่ว่าจะเวลาไหนที่รู้าสึกโดดเดี่ยว หรือเครียดก็จะมีเค้าอยู่ข้างๆตลอดไป</div>
+                    <div class="go-link">กดอีกครั้งเพื่อไปที่หน้าเพลง ➔</div>
+                </div>
+            </div>
 
-                <div class="music-item" onclick="window.location.href='musictap/Extraordinary.html'">
+            <!-- 3. ธรรมดาแสนพิเศษ -->
+            <div class="music-item" onclick="handleCardClick(this, 'musictap/Extraordinary.html')">
+                <div class="item-main">
                     <img src="musictap/photo/ธรรมดาแสนพิเศษ.jpg" class="music-img" onerror="this.src='https://via.placeholder.com/150'">
                     <div class="music-details">
                         <div class="song-name">ธรรมดาแสนพิเศษ</div>
-                        <div class="artist-name">เพลงนี้อยากมอบให้เป็นเพลงที่แสดงถึงความรู้สึกเค้าที่มีต่อแฟนว่าถึงวันไหนคิดว่าตัวเองไม่สวยไม่น่ารัก แต่สำหรับเค้าเธอคือดอกไม้สีขาวท่ามกลางดอกไม้สีดำร้อยๆไร่เลยย</div>
+                        <div class="click-hint">แตะเพื่ออ่านความหมาย ✨</div>
                     </div>
                 </div>
+                <div class="item-expanded">
+                    <div class="artist-name">เพลงนี้อยากมอบให้เป็นเพลงที่แสดงถึงความรู้สึกเค้าที่มีต่อแฟนว่าถึงวันไหนคิดว่าตัวเองไม่สวยไม่น่ารัก แต่สำหรับเค้าเธอคือดอกไม้สีขาวท่ามกลางดอกไม้สีดำร้อยๆไร่เลยย</div>
+                    <div class="go-link">กดอีกครั้งเพื่อไปที่หน้าเพลง ➔</div>
+                </div>
+            </div>
 
-                <div class="music-item" onclick="window.location.href='musictap/ดอกไม้และไวน์.html'">
+            <!-- 4. ดอกไม้และไวน์ -->
+            <div class="music-item" onclick="handleCardClick(this, 'musictap/ดอกไม้และไวน์.html')">
+                <div class="item-main">
                     <img src="musictap/photo/ดอกไม้และไวน์.jpg" class="music-img" onerror="this.src='https://via.placeholder.com/150'">
                     <div class="music-details">
                         <div class="song-name">flower and wine</div>
-                        <div class="artist-name">เป็นเพลงที่ผมอยากให้เธอแทนดอกไม้เพราะผมเป็นรักทางไกลผมเลยชอบเพลงนี้ให้เธอ เมื่อเจอตัวจริงผมจะมอบดอกไม้จริงๆให้เธอเลย อิอิ</div>
+                        <div class="click-hint">แตะเพื่ออ่านความหมาย ✨</div>
                     </div>
                 </div>
+                <div class="item-expanded">
+                    <div class="artist-name">เป็นเพลงที่ผมอยากให้เธอแทนดอกไม้เพราะผมเป็นรักทางไกลผมเลยชอบเพลงนี้ให้เธอ เมื่อเจอตัวจริงผมจะมอบดอกไม้จริงๆให้เธอเลย อิอิ</div>
+                    <div class="go-link">กดอีกครั้งเพื่อไปที่หน้าเพลง ➔</div>
+                </div>
+            </div>
 
-                <div class="music-item" onclick="window.location.href='musictap/Pink.html'">
+            <!-- 5. Pink -->
+            <div class="music-item" onclick="handleCardClick(this, 'musictap/Pink.html')">
+                <div class="item-main">
                     <img src="musictap/photo/Pink.jpg" class="music-img" onerror="this.src='https://via.placeholder.com/150'">
                     <div class="music-details">
                         <div class="song-name">Pink</div>
-                        <div class="artist-name">เพลงที่อยากให้ไม่ว่าจะเสียง จะอารมณ์จะสีหน้าแบบไหนก็ดูน่ารัก รอยยิ้มที่เธอยิ้มออกมาทำให้ใจของเค้ามันสั่นแลัเต้นรัว จนทำให้รู้ว่าสิ่งที่เป็นอยู่คือความรักที่มันเพิ่มเรื่อยๆตั้งแต่คุยกันและตลอดไป</div>
+                        <div class="click-hint">แตะเพื่ออ่านความหมาย ✨</div>
                     </div>
                 </div>
+                <div class="item-expanded">
+                    <div class="artist-name">เพลงที่อยากให้ไม่ว่าจะเสียง จะอารมณ์จะสีหน้าแบบไหนก็ดูน่ารัก รอยยิ้มที่เธอยิ้มออกมาทำให้ใจของเค้ามันสั่นแลัเต้นรัว จนทำให้รู้ว่าสิ่งที่เป็นอยู่คือความรักที่มันเพิ่มเรื่อยๆตั้งแต่คุยกันและตลอดไป</div>
+                    <div class="go-link">กดอีกครั้งเพื่อไปที่หน้าเพลง ➔</div>
+                </div>
+            </div>
 
-                <div class="music-item" onclick="window.location.href='musictap/ตั้งแต่มีเธอฉันมีความสุข.html'">
+            <!-- 6. ตั้งแต่มีเธอฉันมีความสุข -->
+            <div class="music-item" onclick="handleCardClick(this, 'musictap/ตั้งแต่มีเธอฉันมีความสุข.html')">
+                <div class="item-main">
                     <img src="musictap/photo/ตั้งแต่มีเธอฉันมีความสุข.jpg" class="music-img" onerror="this.src='https://via.placeholder.com/150'">
                     <div class="music-details">
                         <div class="song-name">ตั้งแต่มีเธอฉันมีความสุข</div>
-                        <div class="artist-name">เป็นเพลงที่ผมอยากมอบให้แฟนผมทั้งชีวิตผมแต่สิ่งแย่ๆเมื่อมาเจอแฟนคนนี้ทำให้ทุกๆวันผมไม่มีเหงาเลย ผมดีใจมากๆเลยวันแรกที่ผมคุยกันเธอคนนี้ปลุกผมตั้งนาฬิกาปลุกเพื่อผมแต่เธอไม่ตื่นนะ 5555 แต่ผมตื่นแทน อิอิ</div>
+                        <div class="click-hint">แตะเพื่ออ่านความหมาย ✨</div>
                     </div>
                 </div>
+                <div class="item-expanded">
+                    <div class="artist-name">เป็นเพลงที่ผมอยากมอบให้แฟนผมทั้งชีวิตผมแต่สิ่งแย่ๆเมื่อมาเจอแฟนคนนี้ทำให้ทุกๆวันผมไม่มีเหงาเลย ผมดีใจมากๆเลยวันแรกที่ผมคุยกันเธอคนนี้ปลุกผมตั้งนาฬิกาปลุกเพื่อผมแต่เธอไม่ตื่นนะ 5555 แต่ผมตื่นแทน อิอิ</div>
+                    <div class="go-link">กดอีกครั้งเพื่อไปที่หน้าเพลง ➔</div>
+                </div>
+            </div>
 
-                <div class="music-item" onclick="window.location.href='musictap/Lost Jigsaw.html'">
+            <!-- 7. Lost Jigsaw -->
+            <div class="music-item" onclick="handleCardClick(this, 'musictap/Lost Jigsaw.html')">
+                <div class="item-main">
                     <img src="musictap/photo/Lost Jigsaw.jpg" class="music-img" onerror="this.src='https://via.placeholder.com/150'">
                     <div class="music-details">
                         <div class="song-name">Lost Jigsaw</div>
-                        <div class="artist-name">เพลงนี้เป็นเพลงที่ใช้แทนตัวผม ผมเป็นคนที่ด้อยด้านกีฬา ด้อยหลายๆอย่าง ไม่เก่งอะไรสักอย่าง แต่เมื่อผมเจอเธอเหมือนเป็นสิ่งที่หายมานานสิ่งที่ผมขาดไป เป็นเพลงแรกที่ผมชอบและเป็นเพลงเดียวที่ผมซื้อใน apple music</div>
+                        <div class="click-hint">แตะเพื่ออ่านความหมาย ✨</div>
                     </div>
                 </div>
-
-                <div class="music-item" onclick="window.location.href='musictap/รักรักรักรักรักรักรัก (Talk Less).html'">
-                    <img src="musictap/photo/รักรักรักรักรักรักรัก (Talk Less).jpg" class="music-img" onerror="this.src='https://via.placeholder.com/150'">
-                    <div class="music-details">
-                        <div class="song-name">รักรักรักรักรักรักรัก (Talk Less)</div>
-                        <div class="artist-name">เป็นเพลงที่เค้าอยากบอกบี๋ว่า “ฉันพูดน้อยเพียงเพราะฉันต้องการให้คำมันดูมีความหมาย” เค้าชอบแสดงออกในยามที่เห็นว่าควรแสดงออก และในมุมมองของเค้าการแสดงออกทางความรักไม่ได้มีแค่คำพูดเท่านั้น เลยออกแนวปากแข็งแหนะ ไม่ค่อยชอบพูดคำว่ารัก แต่เพราะว่าบี๋เป็นคนประเภทที่ไม่ชอบเก็บความรู้สึก อยากบอกรัก อยากพูดคำหวานๆบี๋ก็จะแสดงออกมาทันทีไม่เก็บไว้ งั้นเค้าคงจะต้อง “รักรักรักรักรักรักรัก” บี๋ที่สุดในโลกเลยยยยย</div>
-                    </div>
-                </div>
-
-                <div class="music-item" onclick="window.location.href='khangkai.html'">
-                    <img src="music/cover3.jpg" class="music-img" onerror="this.src='https://via.placeholder.com/150'">
-                    <div class="music-details">
-                        <div class="song-name">Coming soon</div>
-                        <div class="artist-name">รอติดตามเพลงใหม่เร็วๆ นี้...</div>
-                    </div>
-                </div>
-
-                <div class="music-item" onclick="window.location.href='khangkai.html'">
-                    <img src="music/cover3.jpg" class="music-img" onerror="this.src='https://via.placeholder.com/150'">
-                    <div class="music-details">
-                        <div class="song-name">Coming soon</div>
-                        <div class="artist-name">รอติดตามเพลงใหม่เร็วๆ นี้...</div>
-                    </div>
+                <div class="item-expanded">
+                    <div class="artist-name">เพลงนี้เป็นเพลงที่ใช้แทนตัวผม ผมเป็นคนที่ด้อยด้านกีฬา ด้อยหลายๆอย่าง ไม่เก่งอะไรสักอย่าง แต่เมื่อผมเจอเธอเหมือนเป็นสิ่งที่หายมานานสิ่งที่ผมขาดไป เป็นเพลงแรกที่ผมชอบและเป็นเพลงเดียวที่ผมซื้อใน apple music</div>
+                    <div class="go-link">กดอีกครั้งเพื่อไปที่หน้าเพลง ➔</div>
                 </div>
             </div>
+
+            <!-- 8. รักรักรักรักรักรักรัก -->
+            <div class="music-item" onclick="handleCardClick(this, 'musictap/รักรักรักรักรักรักรัก (Talk Less).html')">
+                <div class="item-main">
+                    <img src="musictap/photo/รักรักรักรักรักรักรัก (Talk Less).jpg" class="music-img" onerror="this.src='https://via.placeholder.com/150'">
+                    <div class="music-details">
+                        <div class="song-name">รักรักรักรักรักรักรัก</div>
+                        <div class="click-hint">แตะเพื่ออ่านความหมาย ✨</div>
+                    </div>
+                </div>
+                <div class="item-expanded">
+                    <div class="artist-name">เป็นเพลงที่เค้าอยากบอกบี๋ว่า “ฉันพูดน้อยเพียงเพราะฉันต้องการให้คำมันดูมีความหมาย” เค้าชอบแสดงออกในยามที่เห็นว่าควรแสดงออก และในมุมมองของเค้าการแสดงออกทางความรักไม่ได้มีแค่คำพูดเท่านั้น เลยออกแนวปากแข็งแหนะ ไม่ค่อยชอบพูดคำว่ารัก แต่เพราะว่าบี๋เป็นคนประเภทที่ไม่ชอบเก็บความรู้สึก อยากบอกรัก อยากพูดคำหวานๆบี๋ก็จะแสดงออกมาทันทีไม่เก็บไว้ งั้นเค้าคงจะต้อง “รักรักรักรักรักรักรัก” บี๋ที่สุดในโลกเลยยยยย</div>
+                    <div class="go-link">กดอีกครั้งเพื่อไปที่หน้าเพลง ➔</div>
+                </div>
+            </div>
+
+            <div class="music-item" onclick="handleCardClick(this, 'musictap/Love story.html')">
+                <div class="item-main">
+                    <img src="musictap/photo/Love story.jpg" class="music-img" onerror="this.src='https://via.placeholder.com/150'">
+                    <div class="music-details">
+                        <div class="song-name">Love Story</div>
+                        <div class="click-hint">แตะเพื่ออ่านความหมาย ✨</div>
+                    </div>
+                </div>
+                <div class="item-expanded">
+                    <div class="artist-name">เป็นเพลงที่ตอนแรกผมฟังแล้วเฉยๆมากแต่พอเมื่อฟังแล้วอ่านเนื้อเพลงเป็นเพลงที่ผมอยากเปิดในงานแต่งเลยถ้าผมมีโอกาสได้แต่งงานผมจะให้เพลงนี้เป็นเพลงแรกเลย เพราะว่าแฟนผมเป็นคนดิ่งผมจากสิ่งร้ายๆต่างๆที่เจอมาในอดีต รักนะ</div>
+                    <div class="go-link">กดอีกครั้งเพื่อไปที่หน้าเพลง ➔</div>
+                </div>
+            </div>
+
+            <div class="music-item" onclick="handleCardClick(this, 'musictap/ส่งเพลงนี้มาบอกฝันดี.html')">
+                <div class="item-main">
+                    <img src="musictap/photo/ส่งเพลงนี้มาบอกฝันดี.jpg" class="music-img" onerror="this.src='https://via.placeholder.com/150'">
+                    <div class="music-details">
+                        <div class="song-name">ส่งเพลงนี้มาบอกฝันดี</div>
+                        <div class="click-hint">แตะเพื่ออ่านความหมาย ✨</div>
+                    </div>
+                </div>
+                <div class="item-expanded">
+                    <div class="artist-name">ผมอยากให้เพลงนี้สำหรับแฟนผมแฟนผมชอบฝันร้ายบ่อยๆอยากให้แฟนผมฝันดีหรือหลับไม่ฝันเลยอยากให้ฝันถึงผมแหนะ อิอิ แต่พอนอนแล้วผมก็คิดถึงแฟนผมมากมาก เลยนอนตาม :333</div>
+                    <div class="go-link">กดอีกครั้งเพื่อไปที่หน้าเพลง ➔</div>
+                </div>
+            </div>
+
+            <div class="music-item" onclick="handleCardClick(this, 'Coming soo')">
+                <div class="item-main">
+                    <img src="รูป" class="music-img" onerror="this.src='https://via.placeholder.com/150'">
+                    <div class="music-details">
+                        <div class="song-name">Coming soon</div>
+                        <div class="click-hint">แตะเพื่ออ่านความหมาย ✨</div>
+                    </div>
+                </div>
+                <div class="item-expanded">
+                    <div class="artist-name">Coming soo</div>
+                    <div class="go-link">กดอีกครั้งเพื่อไปที่หน้าเพลง ➔</div>
+                </div>
+            </div>
+
+            <div class="music-item" onclick="handleCardClick(this, 'Coming soo')">
+                <div class="item-main">
+                    <img src="รูป" class="music-img" onerror="this.src='https://via.placeholder.com/150'">
+                    <div class="music-details">
+                        <div class="song-name">Coming soon</div>
+                        <div class="click-hint">แตะเพื่ออ่านความหมาย ✨</div>
+                    </div>
+                </div>
+                <div class="item-expanded">
+                    <div class="artist-name">Coming soo</div>
+                    <div class="go-link">กดอีกครั้งเพื่อไปที่หน้าเพลง ➔</div>
+                </div>
+            </div>
+
+            
+
         </div>
     </div>
 
     <nav class="bottom-nav">
-        <a href="index.html" class="nav-item active">
-            <span class="nav-icon">🎵</span>
-            <span>เพลง</span>
-        </a>
-        <a href="game.html" class="nav-item">
-            <span class="nav-icon">🎮</span>
-            <span>เกม</span>
-        </a>
-        <a href="#" class="nav-item">
-            <span class="nav-icon">✨</span>
-            <span>เซอร์ไพรส์</span>
-        </a>
+        <a href="index.html" class="nav-item active"><span>🎵</span><span>เพลง</span></a>
+        <a href="game.html" class="nav-item"><span>🎮</span><span>เกม</span></a>
+        <a href="#" class="nav-item"><span>✨</span><span>เซอร์ไพรส์</span></a>
     </nav>
 
-    <div class="contact-wrapper" id="contactArea">
-        <svg class="circle-text" viewBox="0 0 100 100">
-            <path id="circlePath" d="M 50, 50 m -37, 0 a 37,37 0 1,1 74,0 a 37,37 0 1,1 -74,0" fill="transparent" />
-            <text fill="#94a3b8" style="font-size: 10px;"><textPath href="#circlePath">CONTACT ME • CONTACT ME • CONTACT ME • </textPath></text>
-        </svg>
-        <div class="pop-card">
-            <h4 style="margin: 0; text-align: center;">Contact Me</h4>
-            <div class="social-links">
-                <a href="https://www.facebook.com/wisanugjatupon" target="_blank" class="social-item fb">FB</a>
-                <a href="https://www.instagram.com/gfour_.wj/" target="_blank" class="social-item ig">IG</a>
-                <a href="https://www.tiktok.com/@wisanug4" target="_blank" class="social-item tt">TT</a>
-            </div>
-        </div>
-        <button class="contact-trigger" id="contactBtn">💬</button>
-    </div>
-
     <script>
-        // ระบบค้นหาเพลง
-        function filterSongs() {
-            let input = document.getElementById('searchInput').value.toLowerCase();
-            let items = document.getElementsByClassName('music-item');
-            for (let item of items) {
-                let title = item.querySelector('.song-name').innerText.toLowerCase();
-                item.style.display = title.includes(input) ? "flex" : "none";
+        function handleCardClick(element, url) {
+            if (element.classList.contains('active')) {
+                window.location.href = url;
+            } else {
+                document.querySelectorAll('.music-item').forEach(item => item.classList.remove('active'));
+                element.classList.add('active');
             }
         }
-
-        // ระบบ Contact Me
-        const contactArea = document.getElementById('contactArea');
-        document.getElementById('contactBtn').onclick = (e) => { 
-            e.stopPropagation(); 
-            contactArea.classList.toggle('active'); 
-        };
-        document.onclick = () => contactArea.classList.remove('active');
+        
+        // ปิดถ้าคลิกข้างนอกการ์ด
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.music-item')) {
+                document.querySelectorAll('.music-item').forEach(item => item.classList.remove('active'));
+            }
+        });
     </script>
 </body>
 </html>
